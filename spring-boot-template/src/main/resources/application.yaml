@@ -8,6 +8,9 @@ spring:
       schemas: employee
       baselineOnMigrate: true
       enabled: true
+    docker:
+    compose:
+      enabled: false
 server:
   port: 8081
   

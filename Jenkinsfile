@@ -27,8 +27,10 @@ pipeline {
 
         stage('Build & Unit Tests') {
             steps {
+                dir('spring-boot-template') {
                 sh './mvnw clean verify'
             }
+        }
         }
 
         stage('Analyse SAST avec SonarQube') {

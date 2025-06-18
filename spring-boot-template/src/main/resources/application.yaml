@@ -9,8 +9,8 @@ spring:
       baselineOnMigrate: true
       enabled: true
     docker:
-    compose:
-      enabled: false
+      compose:
+        enabled: false
 server:
   port: 8081
   

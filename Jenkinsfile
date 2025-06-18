@@ -59,6 +59,7 @@ pipeline {
         }
         stage('DAST - ZAP Scan') {
             steps {
+                dir('spring-boot-template') {
                 // Lancer docker-compose
                 sh '''
                 docker-compose up -d
@@ -79,6 +80,7 @@ pipeline {
 
             // Archiver le rapport
                 archiveArtifacts artifacts: 'zap_report.html', fingerprint: true
+            }
             }
         }
     }

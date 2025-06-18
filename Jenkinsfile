@@ -21,7 +21,7 @@ pipeline {
          stage('Checkout') {
             steps {
                 cleanWs()
-                git url: "${GITHUB_REPO}", credentialsId: 'jenkins-token'
+                git url: "${GITHUB_REPO}", branch: 'main',credentialsId: 'jenkins-token'
                 sh '''#!/bin/bash
                 ls -la
                 chmod +x spring-boot-template/mvnw

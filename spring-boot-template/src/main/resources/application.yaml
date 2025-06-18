@@ -8,3 +8,6 @@ spring:
       schemas: employee
       baselineOnMigrate: true
       enabled: true
+server:
+  port: 8081
+  

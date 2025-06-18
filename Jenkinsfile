@@ -32,7 +32,9 @@ pipeline {
         stage('Build') {
             steps {
                 dir('spring-boot-template') {
-                    sh '''#!/bin/bash
+                    sh '''
+                     pwd
+                    ls -la
                     ./mvnw clean install -DskipTests
                     '''
                 }

@@ -65,6 +65,9 @@ pipeline {
                 docker-compose up -d
                 echo "Attente du démarrage de l'application..."
                 sleep 30
+                ./mvnw spring-boot:run &
+                # Attend 30 secondes que l'app soit prête
+                sleep 30
                 '''
             }
             }

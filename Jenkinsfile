@@ -21,14 +21,16 @@ pipeline {
             steps {
                 cleanWs()
                 git url: "${GITHUB_REPO}", branch: 'main', credentialsId: 'jenkins-token'
-                
+                sh '''#!/bin/bash
+                ls -la
+                chmod +x spring-boot-template/mvnw
+                '''
             }
         }
 
         stage('Build & Unit Tests') {
             steps {
                 dir('spring-boot-template') {
-                sh 'chmod +x mvnw'
                 sh './mvnw clean verify'
             }
         }

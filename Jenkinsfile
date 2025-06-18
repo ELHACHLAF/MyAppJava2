@@ -28,6 +28,7 @@ pipeline {
         stage('Build & Unit Tests') {
             steps {
                 dir('spring-boot-template') {
+                sh 'chmod +x ./mvnw'
                 sh './mvnw clean verify'
             }
         }

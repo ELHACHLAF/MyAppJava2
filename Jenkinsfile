@@ -21,7 +21,7 @@ pipeline {
             steps {
                 cleanWs()
                 git url: "${GITHUB_REPO}", branch: 'main', credentialsId: 'jenkins-token'
-                sh 'chmod +x mvnw'
+                
             }
         }
 

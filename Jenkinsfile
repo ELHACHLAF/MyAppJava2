@@ -36,7 +36,7 @@ pipeline {
                     sh '''
                      pwd
                     ls -la
-                    ./mvnw clean install -DskipTests
+                    mvn clean install -DskipTests
                     '''
                 }
             }

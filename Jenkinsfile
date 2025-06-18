@@ -44,20 +44,17 @@ pipeline {
 
         stage('Analyse SAST avec SonarQube') {
             steps {
-                steps {
                 dir('spring-boot-template') {
                     sh 'mvn clean install -DskipTests sonar:sonar -Dsonar.projectKey=myprojectJava2 -Dsonar.host.url=http://sonarqube:9000 -Dsonar.login=$SONARQUBE_AUTH_TOKEN'
                     }
-                }
             }
         }
 
         stage('Analyse SCA avec Dependency-Check') {
             steps {
-                steps {
                 dependencyCheck additionalArguments: '--scan ./spring-boot-template --format XML --noupdate', odcInstallation: 'owasp-dependency'
                 dependencyCheckPublisher pattern: 'dependency-check-report.xml'
-            }
+
             }
         }
     }

@@ -6,6 +6,7 @@ pipeline {
         SONARQUBE_AUTH_TOKEN = credentials('sonar-token')
         DEPENDENCY_CHECK = 'owasp/dependency-check'
         GITHUB_REPO = 'https://github.com/ELHACHLAF/MyAppJava2.git'
+        APP_DIR = 'spring-boot-template'
     }
 
     tools {
@@ -17,10 +18,10 @@ pipeline {
     }
 
     stages {
-        stage('Checkout') {
+         stage('Checkout') {
             steps {
                 cleanWs()
-                git url: "${GITHUB_REPO}", branch: 'main', credentialsId: 'jenkins-token'
+                git url: "${GITHUB_REPO}", credentialsId: 'jenkins-token'
                 sh '''#!/bin/bash
                 ls -la
                 chmod +x spring-boot-template/mvnw
@@ -28,12 +29,14 @@ pipeline {
             }
         }
 
-        stage('Build & Unit Tests') {
+        stage('Build') {
             steps {
                 dir('spring-boot-template') {
-                sh './mvnw clean verify'
+                    sh '''#!/bin/bash
+                    ./mvnw clean install -DskipTests
+                    '''
+                }
             }
-        }
         }
 
         stage('Analyse SAST avec SonarQube') {

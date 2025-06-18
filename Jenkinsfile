@@ -57,6 +57,30 @@ pipeline {
 
             }
         }
+        stage('DAST - ZAP Scan') {
+            steps {
+                // Lancer docker-compose
+                sh '''
+                docker-compose up -d
+                echo "Attente du démarrage de l'application..."
+                sleep 30
+                '''
+
+                // Lancer le scan ZAP
+                sh '''
+                docker run --rm \
+                -v $(pwd):/zap/wrk/:rw \
+                zaproxy/zap-stable \
+                zap-baseline.py -t http://host.docker.internal:8081 -r zap_report.html
+                '''
+
+            // Arrêter les conteneurs
+                sh 'docker-compose down'
+
+            // Archiver le rapport
+                archiveArtifacts artifacts: 'zap_report.html', fingerprint: true
+            }
+        }
     }
 
 }

@@ -92,5 +92,10 @@ pipeline {
     }
 }
     }
+    post {
+    always {
+        archiveArtifacts artifacts: 'spring-boot-template/zap_report.html', allowEmptyArchive: true
+    }
+}
 
 }

@@ -58,34 +58,31 @@ pipeline {
             }
         }
         stage('DAST - ZAP Scan') {
-            steps {
-                dir('spring-boot-template') {
-                // Lancer docker-compose
-                sh '''
-                docker-compose up -d
-                echo "Attente du démarrage de l'application..."
-                sleep 30
-                mvn spring-boot:run &
-                # Attend 30 secondes que l'app soit prête
-                sleep 30
-                 # Vérifie si le conteneur est bien lancé
-                docker-compose ps
+    steps {
+        dir('spring-boot-template') {
+            sh '''
+            echo "Construction et démarrage des conteneurs..."
+            docker-compose up -d --build
 
-                # Optionnel : tester que l'appli répond avant de lancer ZAP (requiert curl dans l'image Jenkins)
-                echo "Vérification de la disponibilité de l'application..."
-                for i in {1..10}; do
-                    if curl -s http://host.docker.internal:8081 > /dev/null; then
+            echo "Attente du démarrage de l'application (vérification du port 8081)..."
+            for i in {1..10}; do
+                if curl -s http://host.docker.internal:8081 > /dev/null; then
                     echo "Application disponible !"
                     break
                 else
                     echo "En attente de l'application..."
                     sleep 10
                 fi
-                done
-                '''
-            }
-            }
+            done
+
+            echo "Lancement du scan DAST avec ZAP..."
+            docker run --rm -v $(pwd):/zap/wrk/:rw -t owasp/zap2docker-stable zap-baseline.py \
+                -t http://host.docker.internal:8081 \
+                -g gen.conf -r zap_report.html
+            '''
         }
+    }
+}
     }
 
 }

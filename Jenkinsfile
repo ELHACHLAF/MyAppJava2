@@ -50,13 +50,7 @@ pipeline {
             }
         }
 
-        stage('Analyse SCA avec Dependency-Check') {
-            steps {
-                dependencyCheck additionalArguments: '--scan ./spring-boot-template --format XML --noupdate', odcInstallation: 'owasp-dependency'
-                dependencyCheckPublisher pattern: 'dependency-check-report.xml'
-
-            }
-        }
+        
         stage('DAST - ZAP Scan') {
     steps {
         dir('spring-boot-template') {

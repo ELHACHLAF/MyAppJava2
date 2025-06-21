@@ -67,7 +67,21 @@ pipeline {
                 sleep 30
                 mvn spring-boot:run &
                 # Attend 30 secondes que l'app soit prête
-                sleep 100
+                sleep 30
+                 # Vérifie si le conteneur est bien lancé
+                docker-compose ps
+
+                # Optionnel : tester que l'appli répond avant de lancer ZAP (requiert curl dans l'image Jenkins)
+                echo "Vérification de la disponibilité de l'application..."
+                for i in {1..10}; do
+                    if curl -s http://host.docker.internal:8081 > /dev/null; then
+                    echo "Application disponible !"
+                    break
+                else
+                    echo "En attente de l'application..."
+                    sleep 10
+                fi
+                done
                 '''
             }
             }

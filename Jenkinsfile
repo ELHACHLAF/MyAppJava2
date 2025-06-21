@@ -74,11 +74,12 @@ pipeline {
                     sleep 10
                 fi
             done
-
+            # Vérifier que l'image ZAP est disponible
+            docker pull owasp/zap2docker-stable
             echo "Lancement du scan DAST avec ZAP..."
             docker run --rm -v $(pwd):/zap/wrk/:rw -t owasp/zap2docker-stable zap-baseline.py \
-                -t http://host.docker.internal:8081 \
-                -g gen.conf -r zap_report.html
+            -t http://host.docker.internal:8081 \
+            -g gen.conf -r zap_report.html
             '''
         }
     }

@@ -94,7 +94,7 @@ pipeline {
           echo "ZAP scan a détecté des vulnérabilités critiques (code de sortie non nul)."
           // continuer malgré l’erreur pour archiver le rapport
         }
-            }
+        }
 
             
         }

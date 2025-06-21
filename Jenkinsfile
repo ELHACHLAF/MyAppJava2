@@ -67,7 +67,7 @@ pipeline {
                 sleep 30
                 mvn spring-boot:run &
                 # Attend 30 secondes que l'app soit prête
-                sleep 30
+                sleep 100
                 '''
             }
             }

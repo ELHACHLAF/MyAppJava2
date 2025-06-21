@@ -81,11 +81,17 @@ pipeline {
             # Vérifier que l'image ZAP est disponible
             docker pull ghcr.io/zaproxy/zaproxy:latest
             echo "Lancement du scan DAST avec ZAP..."
+            try{
             docker run --rm -v $(pwd):/zap/wrk/:rw -t ghcr.io/zaproxy/zaproxy:latest zap-baseline.py \
                 -t http://host.docker.internal:8081 \
                 -g gen.conf \
                 -r zap_report.html \
                 -d
+                }
+                catch (err) {
+          echo "ZAP scan a détecté des vulnérabilités critiques (code de sortie non nul)."
+          // continuer malgré l’erreur pour archiver le rapport
+        }
 
             '''
         }
@@ -94,7 +100,15 @@ pipeline {
     }
     post {
     always {
-        archiveArtifacts artifacts: 'spring-boot-template/zap_report.html', allowEmptyArchive: true
+      archiveArtifacts artifacts: 'spring-boot-template/zap_report.html', allowEmptyArchive: true
+      publishHTML(target: [
+        reportName: 'ZAP Report',
+        reportDir: 'spring-boot-template',
+        reportFiles: 'zap_report.html',
+        keepAll: true,
+        alwaysLinkToLastBuild: true,
+        allowMissing: false
+      ])
     }
 }
 

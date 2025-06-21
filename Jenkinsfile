@@ -85,11 +85,14 @@ pipeline {
                 fi
             done
             # Vérifier que l'image ZAP est disponible
-            docker pull owasp/zap2docker-stable
+            docker pull ghcr.io/zaproxy/zaproxy:latest
             echo "Lancement du scan DAST avec ZAP..."
-            docker run --rm -v $(pwd):/zap/wrk/:rw -t owasp/zap2docker-stable zap-baseline.py \
-            -t http://host.docker.internal:8081 \
-            -g gen.conf -r zap_report.html
+            docker run --rm -v $(pwd):/zap/wrk/:rw -t ghcr.io/zaproxy/zaproxy:latest zap-baseline.py \
+                -t http://host.docker.internal:8081 \
+                -g gen.conf \
+                -r zap_report.html \
+                -d
+
             '''
         }
     }

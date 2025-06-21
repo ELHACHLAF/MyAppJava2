@@ -81,6 +81,8 @@ pipeline {
             # Vérifier que l'image ZAP est disponible
             docker pull ghcr.io/zaproxy/zaproxy:latest
             echo "Lancement du scan DAST avec ZAP..."
+            '''
+            script {
             try{
             docker run --rm -v $(pwd):/zap/wrk/:rw -t ghcr.io/zaproxy/zaproxy:latest zap-baseline.py \
                 -t http://host.docker.internal:8081 \
@@ -92,8 +94,9 @@ pipeline {
           echo "ZAP scan a détecté des vulnérabilités critiques (code de sortie non nul)."
           // continuer malgré l’erreur pour archiver le rapport
         }
+            }
 
-            '''
+            
         }
     }
 }

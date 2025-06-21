@@ -61,10 +61,20 @@ pipeline {
     steps {
         dir('spring-boot-template') {
             sh '''
-            echo "Construction et démarrage des conteneurs..."
-            docker-compose up -d --build
+            echo "Compilation Maven du projet..."
+            mvn clean package -DskipTests
 
-            echo "Attente du démarrage de l'application (vérification du port 8081)..."
+            echo "Arrêt et suppression du conteneur app uniquement (sans toucher à postgres)..."
+            docker-compose stop app || true
+            docker-compose rm -f app || true
+
+            echo "Reconstruction de l'image de l'application (app)..."
+            docker-compose build --no-cache app
+
+            echo "Démarrage du service app (postgres doit déjà être up)..."
+            docker-compose up -d app
+
+            echo "Vérification que l'application est disponible..."
             for i in {1..10}; do
                 if curl -s http://host.docker.internal:8081 > /dev/null; then
                     echo "Application disponible !"

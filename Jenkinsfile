@@ -89,11 +89,12 @@ pipeline {
       try {
         sh '''#!/bin/bash
           echo "Création d'un dossier de sortie pour ZAP..."
+          rm -rf zap-output
           mkdir -p zap-output
           chmod -R 777 zap-output
 
           echo "Lancement du scan ZAP..."
-          docker run --rm \
+          docker run --rm --user root \
             -v "$(pwd)/zap-output:/zap/wrk/:rw" \
             ghcr.io/zaproxy/zaproxy:latest \
             zap-baseline.py \

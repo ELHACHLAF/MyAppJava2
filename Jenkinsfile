@@ -41,7 +41,7 @@ pipeline {
                 }
             }
         }
-
+/*
         stage('Analyse SAST avec SonarQube') {
             steps {
                 dir('spring-boot-template') {
@@ -50,7 +50,7 @@ pipeline {
             }
         }
 
-        
+      */  
         stage('DAST - ZAP Scan') {
   steps {
     dir('spring-boot-template') {

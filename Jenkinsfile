@@ -85,6 +85,7 @@ pipeline {
                 script {
                     try{
                         sh '''
+                            chmod -R 777 spring-boot-template
                             docker run --rm -v "$(pwd)/spring-boot-template:/zap/wrk/" \
                                 ghcr.io/zaproxy/zaproxy:latest zap-baseline.py \
                                 -t http://host.docker.internal:8081 \

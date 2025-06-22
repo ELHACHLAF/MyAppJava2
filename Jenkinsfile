@@ -85,13 +85,17 @@ pipeline {
                 script {
                     try{
                         sh '''
-                            chmod -R 777 spring-boot-template
-                            docker run --rm -v "$(pwd)/spring-boot-template:/zap/wrk/" \
+                            echo "Préparation du dossier zap-output..."
+                            mkdir -p zap-output
+                            chmod -R 777 zap-output
+                            docker run --rm -v "$(pwd)/zap-output:/zap/wrk/:rw \
                                 ghcr.io/zaproxy/zaproxy:latest zap-baseline.py \
                                 -t http://host.docker.internal:8081 \
                                 -r zap_report.html
                                 echo "Contenu du dossier après scan :"
                                 ls -l
+                                echo "Copie du rapport ZAP dans le dossier projet..."
+                                cp zap-output/zap_report.html spring-boot-template/
                         '''
                     }
                     catch (err) {

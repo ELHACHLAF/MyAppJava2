@@ -99,7 +99,6 @@ pipeline {
             zap-baseline.py \
             -t http://host.docker.internal:8081 \
             -r zap_report.html \
-            --exit-zero-if-alerts-found \
             -d
 
           echo "Copie du rapport ZAP dans le dossier du projet..."

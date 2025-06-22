@@ -89,18 +89,8 @@ pipeline {
                                 ghcr.io/zaproxy/zaproxy:latest zap-baseline.py \
                                 -t http://host.docker.internal:8081 \
                                 -r zap_report.html
-                            
-                            docker run --rm 
-                                -v $(pwd):/zap/wrk/:rw 
-                                -t ghcr.io/zaproxy/zaproxy:latest \
-                                zap-baseline.py \
-                                -t http://host.docker.internal:8081 \
-                                -g gen.conf \
-                                -r zap_report.html \
-                                --exit-zero-if-alerts-found \
-                                -d
                                 echo "Contenu du dossier après scan :"
-                            ls -l
+                                ls -l
                         '''
                     }
                     catch (err) {

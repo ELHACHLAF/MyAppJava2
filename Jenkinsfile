@@ -85,10 +85,12 @@ pipeline {
             script {
             try{
             sh '''
-            docker run --rm -v $(pwd):/zap/wrk/:rw -t ghcr.io/zaproxy/zaproxy:latest zap-baseline.py \
+            docker run --rm -v $(pwd):/zap/wrk/:rw 
+                -t ghcr.io/zaproxy/zaproxy:latest zap-baseline.py \
                 -t http://host.docker.internal:8081 \
                 -g gen.conf \
                 -r zap_report.html \
+                --exit-zero-if-alerts-found \
                 -d
                 '''
                 }

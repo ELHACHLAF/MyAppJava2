@@ -59,14 +59,14 @@ pipeline {
         mvn clean package -DskipTests
 
         echo "Arrêt et suppression du conteneur app uniquement (sans toucher à postgres)..."
-        docker-compose stop app || true
-        docker-compose rm -f app || true
+        docker compose stop app || true
+        docker compose rm -f app || true
 
         echo "Reconstruction de l'image de l'application (app)..."
-        docker-compose build --no-cache app
+        docker compose build --no-cache app
 
         echo "Démarrage du service app (postgres doit déjà être up)..."
-        docker-compose up -d app
+        docker compose up -d app
 
         echo "Vérification que l'application est disponible..."
         for i in {1..10}; do

@@ -98,7 +98,7 @@ pipeline {
             -v "$(pwd)/zap-output:/zap/wrk/:rw" \
             ghcr.io/zaproxy/zaproxy:latest \
             zap-baseline.py \
-            -t http://host.docker.internal:8081 \
+            -t http://host.docker.internal:8083 \
             -r zap_report.html \
             -d
 

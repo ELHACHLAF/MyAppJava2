@@ -90,8 +90,8 @@ pipeline {
         sh '''#!/bin/bash
           echo "Création d'un dossier de sortie pour ZAP..."
           rm -rf zap-output
-          mkdir -p zap-output
-          chmod -R 777 zap-output
+          mkdir -p $(pwd)/zap-output
+          chmod -R 777 $(pwd)/zap-output
 
           echo "Lancement du scan ZAP..."
           docker run --rm --user root \

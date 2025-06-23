@@ -102,7 +102,7 @@ pipeline {
             -t http://host.docker.internal:8083 \
             -r zap_report.html \
             -d
-
+            find . -name zap_report.html
           echo "Copie du rapport ZAP dans le dossier du projet..."
           cp spring-boot-template/zap_report.html spring-boot-template/zap-output/zap_report.html
         '''

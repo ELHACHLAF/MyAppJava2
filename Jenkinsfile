@@ -94,8 +94,9 @@ pipeline {
           chmod -R 777 $(pwd)/zap-output
 
           echo "Lancement du scan ZAP..."
+          
           docker run --rm --user root \
-            -v "$(pwd)/zap-output:/zap/wrk/:rw" \
+            -v "$(pwd)/spring-boot-template/zap-output:/zap/wrk/:rw" \
             ghcr.io/zaproxy/zaproxy:latest \
             zap-baseline.py \
             -t http://host.docker.internal:8083 \
@@ -103,7 +104,7 @@ pipeline {
             -d
 
           echo "Copie du rapport ZAP dans le dossier du projet..."
-          cp zap-output/zap_report.html spring-boot-template/
+          cp spring-boot-template/zap-output/zap_report.html spring-boot-template/zap_report.html
         '''
       } catch (err) {
         echo "⚠️ ZAP a retourné un code d’erreur, probablement à cause de vulnérabilités critiques."

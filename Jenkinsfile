@@ -87,6 +87,7 @@ pipeline {
     // scan ZAP en dehors du bloc `dir`, pour ne pas mettre zap-output dans le code
     script {
       try {
+        def workspaceDir = pwd()
         sh '''#!/bin/bash
           echo "Création d'un dossier de sortie pour ZAP..."
           rm -rf zap-output
@@ -96,7 +97,7 @@ pipeline {
           echo "Lancement du scan ZAP..."
           
           docker run --rm --user root \
-            -v "$(pwd)/spring-boot-template:/zap/wrk" \
+            -v ${workspaceDir}:/zap/wrk \
             ghcr.io/zaproxy/zaproxy:latest \
             zap-baseline.py \
             -t http://host.docker.internal:8083 \
@@ -107,6 +108,8 @@ pipeline {
           echo "Copie du rapport ZAP dans le dossier du projet..."
           cp spring-boot-template/zap_report.html spring-boot-template/zap-output/zap_report.html
         '''
+        sh "ls -l ${workspaceDir}"
+        sh "ls -l ${workspaceDir}/zap_report.html"
       } catch (err) {
         echo "⚠️ ZAP a retourné un code d’erreur, probablement à cause de vulnérabilités critiques."
       }

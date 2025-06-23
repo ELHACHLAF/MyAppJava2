@@ -103,6 +103,7 @@ pipeline {
             -r zap_report.html \
             -d
             find . -name zap_report.html
+            ls -l zap_report.html zap-output/
           echo "Copie du rapport ZAP dans le dossier du projet..."
           cp spring-boot-template/zap_report.html spring-boot-template/zap-output/zap_report.html
         '''

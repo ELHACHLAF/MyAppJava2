@@ -104,7 +104,7 @@ pipeline {
             -d
 
           echo "Copie du rapport ZAP dans le dossier du projet..."
-          cp spring-boot-template/zap-output/zap_report.html spring-boot-template/zap_report.html
+          cp zap_report.html spring-boot-template/zap_report.html
         '''
       } catch (err) {
         echo "⚠️ ZAP a retourné un code d’erreur, probablement à cause de vulnérabilités critiques."

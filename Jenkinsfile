@@ -23,16 +23,20 @@ pipeline {
     }
 
     stages {
-        stage('Checkout & Build') {
+         stage('Checkout & Build') {
             steps {
                 cleanWs()
                 git url: "${GITHUB_REPO}", branch: 'main', credentialsId: 'jenkins-token'
                 dir(APP_DIR) {
-                    sh 'chmod +x mvnw'
-                    sh './mvnw clean install -DskipTests'
+                    // La commande chmod n'est plus nécessaire si on n'utilise pas mvnw
+                    // sh 'chmod +x mvnw' 
+                    
+                    // CORRECTION : On utilise l'outil 'mvn' global de Jenkins
+                    sh 'mvn clean install -DskipTests'
                 }
             }
         }
+        
         
         stage('DAST - ZAP Scan') {
             steps {

@@ -52,74 +52,97 @@ pipeline {
 
       */  
         stage('DAST - ZAP Scan') {
-  steps {
-    dir('spring-boot-template') {
-      sh '''
-        echo "Compilation Maven du projet..."
-        mvn clean package -DskipTests
-
-        echo "Arrêt et suppression du conteneur app uniquement (sans toucher à postgres)..."
-        docker-compose stop app || true
-        docker-compose rm -f app || true
-
-        echo "Reconstruction de l'image de l'application (app)..."
-        docker-compose build --no-cache app
-
-        echo "Démarrage du service app (postgres doit déjà être up)..."
-        docker-compose up -d app
-
-        echo "Vérification que l'application est disponible..."
-        for i in {1..10}; do
-          if curl -s http://host.docker.internal:8081 > /dev/null; then
-            echo "Application disponible !"
-            break
-          else
-            echo "En attente de l'application..."
-            sleep 10
-          fi
-        done
-
-        echo "Pull de l'image ZAP..."
-        docker pull ghcr.io/zaproxy/zaproxy:latest
-      '''
-    }
-
-    // scan ZAP en dehors du bloc `dir`, pour ne pas mettre zap-output dans le code
-    script {
-      try {
-        def workspaceDir = pwd()
-        sh '''#!/bin/bash
-          echo "Création d'un dossier de sortie pour ZAP..."
-          rm -rf zap-output
-          mkdir -p $(pwd)/zap-output
-          chmod -R 777 $(pwd)/zap-output
-
-          echo "Lancement du scan ZAP..."
-          
-          docker run --rm --user root \
-            -v ${workspaceDir}:/zap/wrk \
-            ghcr.io/zaproxy/zaproxy:latest \
-            zap-baseline.py \
-            -t http://host.docker.internal:8083 \
-            -r zap_report.html \
-            -d
-            find . -name zap_report.html
-            ls -l zap_report.html zap-output/
-          echo "Copie du rapport ZAP dans le dossier du projet..."
-          cp spring-boot-template/zap_report.html spring-boot-template/zap-output/zap_report.html
-        '''
-        sh "ls -l ${workspaceDir}"
-        sh "ls -l ${workspaceDir}/zap_report.html"
-      } catch (err) {
-        echo "⚠️ ZAP a retourné un code d’erreur, probablement à cause de vulnérabilités critiques."
-      }
-    }
-
+    steps {
+        script {
+            def networkName = ''
             
+            // Étape 1 : Démarrer l'application avec docker-compose
+            // On utilise dir() uniquement pour ce bloc
+            dir(APP_DIR) {
+                try {
+                    sh '''#!/bin/bash
+                        set -e
+                        echo "Arrêt et suppression des anciens conteneurs et réseaux..."
+                        docker-compose down --remove-orphans || true
+
+                        echo "Reconstruction et démarrage de l'application..."
+                        docker-compose up --build -d app
+                    '''
+                    
+                    // On récupère le nom du réseau pendant qu'on est dans le bon dossier
+                    networkName = sh(script: 'echo "$(basename $(pwd))_default"', returnStdout: true).trim()
+                    echo "Le réseau Docker Compose identifié est : ${networkName}"
+
+                    // On vérifie que l'app est prête
+                    sh '''#!/bin/bash
+                        set -e
+                        APP_SERVICE_NAME="app"
+                        APP_INTERNAL_PORT="8083"
+                        DOCKER_NETWORK_NAME=$1 // Récupère le nom du réseau passé en argument
+
+                        echo "Attente de la disponibilité de l'application sur le réseau ${DOCKER_NETWORK_NAME}..."
+                        for i in {1..20}; do
+                          if docker run --rm --network=${DOCKER_NETWORK_NAME} appropriate/curl -s --fail http://${APP_SERVICE_NAME}:${APP_INTERNAL_PORT}/actuator/health > /dev/null; then
+                              echo "L'application est saine et répond !"
+                              break
+                          else
+                              echo "En attente de l'application... ($i/20)"
+                              sleep 6
+                          fi
+                        done
+                    '''.execute(networkName) // Passe la variable Groovy au script shell
+                    
+                } catch(e) {
+                    echo "Erreur lors du démarrage de l'application avec docker-compose."
+                    // On s'assure de nettoyer même en cas d'échec
+                    dir(APP_DIR) {
+                        sh "docker-compose down --remove-orphans"
+                    }
+                    throw e // Fait échouer le build
+                }
+            } // Fin du bloc dir(APP_DIR)
+
+            // Maintenant, le répertoire de travail courant est de nouveau la racine du workspace.
+            echo "Retour à la racine du workspace : ${pwd()}"
+
+            // Étape 2 : Lancer le scan ZAP depuis la racine du workspace
+            if (networkName) { // On ne lance le scan que si le réseau a été créé
+                try {
+                    def workspaceDir = pwd() // Maintenant, pwd() donne le bon chemin
+                    
+                    sh """#!/bin/bash
+                        set -e
+                        echo "Création du dossier de sortie pour le rapport ZAP..."
+                        rm -rf "${ZAP_REPORT_DIR}"
+                        mkdir -p "${ZAP_REPORT_DIR}"
+
+                        echo "Lancement du scan ZAP sur le réseau ${networkName}..."
+                        
+                        docker run --rm --network "${networkName}" \
+                            -v "${workspaceDir}":/zap/wrk \
+                            ghcr.io/zaproxy/zaproxy:latest \
+                            zap-baseline.py \
+                            -t http://app:8083 \
+                            -r "wrk/${ZAP_REPORT_DIR}/zap_report.html" \
+                            -d
+                    """
+                } catch (err) {
+                    echo "⚠️ ZAP a terminé avec un statut de non-succès. Des vulnérabilités ont probablement été trouvées."
+                } finally {
+                    // Étape 3 : Nettoyage final
+                    echo "Arrêt des conteneurs après le scan..."
+                    // On doit retourner dans le dossier pour que docker-compose trouve son fichier
+                    dir(APP_DIR) {
+                        sh "docker-compose down --remove-orphans"
+                    }
+                }
+            } else {
+                error("Le nom du réseau Docker n'a pas pu être déterminé. Le scan ZAP est annulé.")
+            }
         }
     }
 }
-
+    }
     post {
     always {
       archiveArtifacts artifacts: 'spring-boot-template/zap_report.html', allowEmptyArchive: true

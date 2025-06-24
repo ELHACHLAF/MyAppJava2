@@ -1,37 +1,17 @@
+# docker-compose.yml
 services:
-  postgres:
-    image: postgres:13
-    environment:
-      - POSTGRES_DB=mydatabase
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=password
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d mydatabase"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
+  # ... service postgres ...
   app:
     build: .
-    # depends_on est bon, mais on va ajouter une protection supplémentaire
     depends_on:
       postgres:
         condition: service_healthy
     ports:
       - "8083:8080"
     environment:
-      # CORRECTION : On utilise une URL JDBC qui attend que la base soit prête
-      # L'ajout de `?connectTimeout=10&socketTimeout=10` peut aider
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/mydatabase?connectTimeout=10&socketTimeout=10
-      - SPRING_DATASOURCE_USERNAME=user
-      - SPRING_DATASOURCE_PASSWORD=password
-      # Pour le débogage, on active les logs de connexion JDBC
-      - SPRING_JPA_PROPERTIES_HIBERNATE_SHOW_SQL=true
-      # On s'assure que l'app attend la base
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      # On utilise les noms de variables définis dans application.properties
+      - DB_URL=jdbc:postgresql://postgres:5432/mydatabase
+      - DB_USER=user
+      - DB_PASS=password
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 10 # On augmente le nombre d'essais
-      start_period: 45s # On lui donne plus de temps pour démarrer
+      # ... reste du healthcheck ...

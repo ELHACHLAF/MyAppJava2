@@ -1,17 +1,48 @@
-# docker-compose.yml
+# Version du format docker-compose. '3.8' est une version moderne et stable.
+version: '3.8'
+
+# Définition des services (conteneurs)
 services:
-  # ... service postgres ...
+
+  # Service pour la base de données PostgreSQL
+  postgres:
+    image: postgres:13-alpine # Utilisation d'une image alpine, plus légère
+    container_name: myapp_postgres # Nom fixe pour le conteneur, plus facile à identifier
+    environment:
+      - POSTGRES_DB=mydatabase
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - postgres-data:/var/lib/postgresql/data # Volume pour rendre les données persistantes
+    healthcheck:
+      # Commande pour vérifier que la base de données est prête à accepter des connexions
+      test: ["CMD-SHELL", "pg_isready -U user -d mydatabase"]
+      interval: 10s   # Vérifier toutes les 10 secondes
+      timeout: 5s     # Considérer la vérification comme échouée après 5 secondes
+      retries: 5      # Essayer 5 fois avant de marquer comme "unhealthy"
+
+  # Service pour votre application Spring Boot
   app:
-    build: .
+    build: . # Construit l'image à partir du Dockerfile dans le dossier courant
+    container_name: myapp_app # Nom fixe pour le conteneur
     depends_on:
       postgres:
-        condition: service_healthy
+        condition: service_healthy # Ne démarre ce service que lorsque le service 'postgres' est "healthy"
     ports:
-      - "8083:8080"
+      - "8083:8080" # Mappe le port 8080 du conteneur au port 8083 de la machine hôte
     environment:
-      # On utilise les noms de variables définis dans application.properties
+      # Variables d'environnement qui seront lues par application.properties
       - DB_URL=jdbc:postgresql://postgres:5432/mydatabase
       - DB_USER=user
       - DB_PASS=password
     healthcheck:
-      # ... reste du healthcheck ...
+      # Commande pour vérifier que l'application est prête en interrogeant l'endpoint Actuator
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 10s   # Vérifier toutes les 10 secondes
+      timeout: 5s     # Timeout de 5 secondes pour la requête curl
+      retries: 10     # Essayer 10 fois
+      start_period: 45s # Donner 45 secondes à l'application pour démarrer avant de commencer les vérifications
+
+# Définition des volumes nommés
+volumes:
+  postgres-data: # Assure que les données de la base ne sont pas perdues si le conteneur est supprimé
